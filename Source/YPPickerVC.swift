@@ -9,17 +9,13 @@
 import Foundation
 import Stevia
 import Photos
-
-protocol ImagePickerDelegate: AnyObject {
-    func noPhotos()
-}
+import UIKit
 
 open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
     let albumsManager = YPAlbumsManager()
     var shouldHideStatusBar = false
     var initialStatusBarHidden = false
-    weak var imagePickerDelegate: ImagePickerDelegate?
     
     override open var prefersStatusBarHidden: Bool {
         return (shouldHideStatusBar || initialStatusBarHidden) && YPConfig.hidesStatusBar
@@ -309,15 +305,40 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         if mode == .library {
             libraryVC.doAfterPermissionCheck { [weak self] in
                 libraryVC.selectedMedia(photoCallback: { photo in
+                  if let photo = photo {
                     self?.didSelectItems?([YPMediaItem.photo(p: photo)])
+                  } else {
+                    self?.presentAlert()
+                  }
+                   
                 }, videoCallback: { video in
-                    self?.didSelectItems?([YPMediaItem
-                        .video(v: video)])
+                  if let video = video {
+                    self?.didSelectItems?([YPMediaItem.video(v: video)])
+                  } else {
+                    self?.presentAlert()
+                  }
+
                 }, multipleItemsCallback: { items in
+                  if !items.isEmpty {
                     self?.didSelectItems?(items)
+                  } else {
+                    self?.presentAlert()
+                  }
                 })
             }
         }
+    }
+  
+    private func presentAlert() {
+      
+      let ok = UIAlertAction(title: "Ok", style: .cancel)
+      
+      let alert = UIAlertController(title: "Failed to get media",
+                                    message: "A problem occured while trying to get your media from your library",
+                                    preferredStyle: .alert)
+      alert.addAction(ok)
+      
+      present(alert, animated: true, completion: nil)
     }
     
     func stopAll() {
@@ -363,11 +384,5 @@ extension YPPickerVC: YPLibraryViewDelegate {
         v.header.bottomConstraint?.constant = enabled ? offset : 0
         v.layoutIfNeeded()
         updateUI()
-    }
-    
-    public func noPhotosForOptions() {
-        self.dismiss(animated: true) {
-            self.imagePickerDelegate?.noPhotos()
-        }
     }
 }

@@ -136,7 +136,7 @@ extension YPVideoView {
 
 // MARK: - Other API
 extension YPVideoView {
-    public func setPreviewImage(_ image: UIImage) {
+    public func setPreviewImage(_ image: UIImage?) {
         previewImageView.image = image
     }
     

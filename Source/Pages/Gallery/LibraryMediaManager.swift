@@ -65,13 +65,16 @@ class LibraryMediaManager {
         }
     }
     
-    func fetchVideoUrlAndCrop(for videoAsset: PHAsset, cropRect: CGRect, callback: @escaping (URL) -> Void) {
+    func fetchVideoUrlAndCrop(for videoAsset: PHAsset, cropRect: CGRect, callback: @escaping (URL?) -> Void) {
         let videosOptions = PHVideoRequestOptions()
         videosOptions.isNetworkAccessAllowed = true
         videosOptions.deliveryMode = .highQualityFormat
         imageManager?.requestAVAsset(forVideo: videoAsset, options: videosOptions) { asset, _, _ in
             do {
-                guard let asset = asset else { print("⚠️ PHCachingImageManager >>> Don't have the asset"); return }
+                guard let asset = asset else {
+                  print("⚠️ PHCachingImageManager >>> Don't have the asset")
+                  return callback(nil)
+                }
                 
                 let assetComposition = AVMutableComposition()
                 let trackTimeRange = CMTimeRangeMake(start: CMTime.zero, duration: asset.duration)
@@ -79,12 +82,11 @@ class LibraryMediaManager {
                 // 1. Inserting audio and video tracks in composition
                 
                 guard let videoTrack = asset.tracks(withMediaType: AVMediaType.video).first,
-                    let videoCompositionTrack = assetComposition
-                        .addMutableTrack(withMediaType: .video,
-                                         preferredTrackID: kCMPersistentTrackID_Invalid) else {
-                                            print("⚠️ PHCachingImageManager >>> Problems with video track")
-                                            return
-                                            
+                    let videoCompositionTrack =
+                  assetComposition.addMutableTrack(withMediaType: .video, preferredTrackID:kCMPersistentTrackID_Invalid)
+                else {
+                    print("⚠️ PHCachingImageManager >>> Problems with video track")
+                    return callback(nil)
                 }
                 if let audioTrack = asset.tracks(withMediaType: AVMediaType.audio).first,
                     let audioCompositionTrack = assetComposition
@@ -142,11 +144,13 @@ class LibraryMediaManager {
                         } else {
                             let error = exportSession?.error
                             print("error exporting video \(String(describing: error))")
+                            callback(nil)
                         }
                     }
                 })
             } catch let error {
                 print("⚠️ PHCachingImageManager >>> \(error)")
+                callback(nil)
             }
         }
     }

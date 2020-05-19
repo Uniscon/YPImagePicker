@@ -20,7 +20,8 @@ extension PHCachingImageManager {
         return options
     }
     
-    func fetchImage(for asset: PHAsset, cropRect: CGRect, targetSize: CGSize, callback: @escaping (UIImage, [String: Any]) -> Void) {
+    func fetchImage(for asset: PHAsset, cropRect: CGRect, targetSize: CGSize, callback: @escaping (UIImage?, [String: Any]) -> Void) {
+      
         let options = photoImageRequestOptions()
     
         // Fetch Highiest quality image possible.
@@ -38,7 +39,13 @@ extension PHCachingImageManager {
                     let croppedImage = UIImage(cgImage: imageRef)
                     let exifs = self.metadataForImageData(data: data)
                     callback(croppedImage, exifs)
+                } else {
+                  print("Failed to crop fetched image to: \(scaledCropRect)")
+                  callback(nil, [:])
                 }
+            } else {
+              print("Failed to obtain image data for asset: \(asset)")
+              callback(nil, [:])
             }
         }
     }
@@ -52,45 +59,58 @@ extension PHCachingImageManager {
         return [:]
     }
     
-    func fetchPreviewFor(video asset: PHAsset, callback: @escaping (UIImage) -> Void) {
+    func fetchPreviewFor(video asset: PHAsset, callback: @escaping (UIImage?) -> Void) {
+      
         let options = PHImageRequestOptions()
         options.isNetworkAccessAllowed = true
         options.isSynchronous = true
         let screenWidth = UIScreen.main.bounds.width
         let ts = CGSize(width: screenWidth, height: screenWidth)
         requestImage(for: asset, targetSize: ts, contentMode: .aspectFill, options: options) { image, _ in
-            if let image = image {
-                DispatchQueue.main.async {
-                    callback(image)
-                }
-            }
+          
+          guard let image = image else {
+            print("Failed to fetch preview for video asset: \(asset)")
+            return callback(nil)
+          }
+          
+          DispatchQueue.main.async {
+              callback(image)
+          }
         }
     }
     
-    func fetchPlayerItem(for video: PHAsset, callback: @escaping (AVPlayerItem) -> Void) {
+    func fetchPlayerItem(for video: PHAsset, callback: @escaping (AVPlayerItem?) -> Void) {
+      
         let videosOptions = PHVideoRequestOptions()
         videosOptions.deliveryMode = PHVideoRequestOptionsDeliveryMode.automatic
         videosOptions.isNetworkAccessAllowed = true
         requestPlayerItem(forVideo: video, options: videosOptions, resultHandler: { playerItem, _ in
-            DispatchQueue.main.async {
-                if let playerItem = playerItem {
-                    callback(playerItem)
-                }
-            }
+          
+          guard let playerItem = playerItem else {
+            print("Failed to fetch player item for video asset: \(video)")
+            return callback(nil)
+          }
+          
+          DispatchQueue.main.async {
+            callback(playerItem)
+          }
         })
     }
     
     /// This method return two images in the callback. First is with low resolution, second with high.
     /// So the callback fires twice.
-    func fetch(photo asset: PHAsset, callback: @escaping (UIImage, Bool) -> Void) {
+    func fetch(photo asset: PHAsset, callback: @escaping (UIImage?, Bool) -> Void) {
+      
         let options = PHImageRequestOptions()
         options.isNetworkAccessAllowed = true // Enables gettings iCloud photos over the network, this means PHImageResultIsInCloudKey will never be true.
         options.deliveryMode = .opportunistic // Get 2 results, one low res quickly and the high res one later.
         requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFill, options: options) { result, info in
+          
             guard let image = result else {
-                print("No Result 🛑")
-                return
+                print("Failed to obtain image for asset: \(asset)")
+                return callback(nil, false)
             }
+          
             DispatchQueue.main.async {
                 let isLowRes = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
                 callback(image, isLowRes)

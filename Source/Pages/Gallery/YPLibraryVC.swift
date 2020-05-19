@@ -164,6 +164,9 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     }
     
     private func showMultipleSelection() {
+      
+      if mediaManager.fetchResult.count > 0 {
+        
         if !multipleSelectionEnabled {
             selection.removeAll()
         }
@@ -195,6 +198,7 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         v.collectionView.reloadData()
         checkLimit()
         delegate?.libraryViewDidToggleMultipleSelection(enabled: multipleSelectionEnabled)
+      }
     }
     
     // MARK: - Tap Preview
@@ -270,7 +274,8 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         } else {
             mediaManager.fetchResult = PHAsset.fetchAssets(with: options)
         }
-                
+        
+        v.hideLoader()
         if mediaManager.fetchResult.count > 0 {
             changeAsset(mediaManager.fetchResult[0])
             v.collectionView.reloadData()
@@ -280,9 +285,8 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
             if !multipleSelectionEnabled {
                 addToSelection(indexPath: IndexPath(row: 0, section: 0))
             }
-        } else {
-            delegate?.noPhotosForOptions()
         }
+      
         scrollToTop()
     }
     
@@ -413,18 +417,25 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
     private func fetchImageAndCrop(for asset: PHAsset,
                                    withCropRect: CGRect? = nil,
-                                   callback: @escaping (_ photo: UIImage, _ exif: [String : Any]) -> Void) {
-        delegate?.libraryViewDidTapNext()
+                                   callback: @escaping (_ photo: UIImage?, _ exif: [String : Any]) -> Void) {
+      
         let cropRect = withCropRect ?? DispatchQueue.main.sync { v.currentCropRect() }
         let ts = targetSize(for: asset, cropRect: cropRect)
-        mediaManager.imageManager?.fetchImage(for: asset, cropRect: cropRect, targetSize: ts, callback: callback)
+        mediaManager.imageManager?.fetchImage(for: asset, cropRect: cropRect, targetSize: ts, callback: { image, info in
+          
+          if let image = image {
+            self.delegate?.libraryViewDidTapNext()
+          }
+          
+          callback(image, info)
+        })
     }
     
     private func checkVideoLengthAndCrop(for asset: PHAsset,
                                          withCropRect: CGRect? = nil,
-                                         callback: @escaping (_ videoURL: URL) -> Void) {
+                                         callback: @escaping (_ videoURL: URL?) -> Void) {
         if fitsVideoLengthLimits(asset: asset) == true {
-            delegate?.libraryViewDidTapNext()
+            
             let normalizedCropRect = withCropRect ?? DispatchQueue.main.sync { v.currentCropRect() }
             let ts = targetSize(for: asset, cropRect: normalizedCropRect)
             let xCrop: CGFloat = normalizedCropRect.origin.x * CGFloat(asset.pixelWidth)
@@ -433,12 +444,19 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                                         y: yCrop,
                                         width: ts.width,
                                         height: ts.height)
-            mediaManager.fetchVideoUrlAndCrop(for: asset, cropRect: resultCropRect, callback: callback)
+            mediaManager.fetchVideoUrlAndCrop(for: asset, cropRect: resultCropRect) { videoURL in
+              
+              if let videoURL = videoURL {
+                self.delegate?.libraryViewDidTapNext()
+              }
+              
+              callback(videoURL)
+            }
         }
     }
     
-    public func selectedMedia(photoCallback: @escaping (_ photo: YPMediaPhoto) -> Void,
-                              videoCallback: @escaping (_ videoURL: YPMediaVideo) -> Void,
+    public func selectedMedia(photoCallback: @escaping (_ photo: YPMediaPhoto?) -> Void,
+                              videoCallback: @escaping (_ videoURL: YPMediaVideo?) -> Void,
                               multipleItemsCallback: @escaping (_ items: [YPMediaItem]) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             
@@ -467,16 +485,20 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                     switch asset.asset.mediaType {
                     case .image:
                         self.fetchImageAndCrop(for: asset.asset, withCropRect: asset.cropRect) { image, exifMeta in
+                          if let image = image {
                             let photo = YPMediaPhoto(image: image.resizedImageIfNeeded(), exifMeta: exifMeta, asset: asset.asset)
                             resultMediaItems.append(YPMediaItem.photo(p: photo))
+                          }
                             asyncGroup.leave()
                         }
                         
                     case .video:
                         self.checkVideoLengthAndCrop(for: asset.asset, withCropRect: asset.cropRect) { videoURL in
+                          if let videoURL = videoURL {
                             let videoItem = YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
                                                          videoURL: videoURL, asset: asset.asset)
                             resultMediaItems.append(YPMediaItem.video(v: videoItem))
+                          }
                             asyncGroup.leave()
                         }
                     default:
@@ -495,15 +517,21 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                     return
                 case .video:
                     self.checkVideoLengthAndCrop(for: asset, callback: { videoURL in
+                      if let videoURL = videoURL {
                         DispatchQueue.main.async {
                             self.delegate?.libraryViewFinishedLoading()
                             let video = YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
                                                      videoURL: videoURL, asset: asset)
                             videoCallback(video)
                         }
+                      } else {
+                        videoCallback(nil)
+                      }
+                        
                     })
                 case .image:
                     self.fetchImageAndCrop(for: asset) { image, exifMeta in
+                      if let image = image {
                         DispatchQueue.main.async {
                             self.delegate?.libraryViewFinishedLoading()
                             let photo = YPMediaPhoto(image: image.resizedImageIfNeeded(),
@@ -511,6 +539,9 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                                                      asset: asset)
                             photoCallback(photo)
                         }
+                      } else {
+                        photoCallback(nil)
+                      }
                     }
                 @unknown default:
                     fatalError()

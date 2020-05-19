@@ -26,6 +26,8 @@ final class YPAssetZoomableView: UIScrollView {
     public var minWidth: CGFloat? = YPConfig.library.minWidthForItem
     
     fileprivate var currentAsset: PHAsset?
+  
+    lazy var previewFailedView = makePreviewUnavailableView()
     
     // Image view of the asset for convenience. Can be video preview image view or photo image view.
     public var assetImageView: UIImageView {
@@ -73,8 +75,13 @@ final class YPAssetZoomableView: UIScrollView {
             }
             
             strongSelf.videoView.setPreviewImage(preview)
-            
             strongSelf.setAssetFrame(for: strongSelf.videoView, with: preview)
+            
+            if let preview = preview {
+                strongSelf.removePreviewUnavailable()
+            } else {
+                strongSelf.setPreviewUnavailable(for: strongSelf.videoView.previewImageView)
+            }
             
             completion()
             
@@ -89,9 +96,11 @@ final class YPAssetZoomableView: UIScrollView {
             guard let strongSelf = self else { return }
             guard strongSelf.currentAsset != video else { completion() ; return }
             strongSelf.currentAsset = video
-
-            strongSelf.videoView.loadVideo(playerItem)
-            strongSelf.videoView.play()
+            
+            if let playerItem = playerItem {
+              strongSelf.videoView.loadVideo(playerItem)
+              strongSelf.videoView.play()
+            }
         }
     }
     
@@ -121,9 +130,14 @@ final class YPAssetZoomableView: UIScrollView {
             }
             
             strongSelf.photoImageView.image = image
-           
             strongSelf.setAssetFrame(for: strongSelf.photoImageView, with: image)
-                
+          
+            if let image = image {
+                strongSelf.removePreviewUnavailable()
+            } else {
+                strongSelf.setPreviewUnavailable(for: strongSelf.photoImageView)
+            }
+
             // Stored crop position in multiple selection
             if let scp173 = storedCropPosition {
                 strongSelf.applyStoredCropPosition(scp173)
@@ -134,36 +148,75 @@ final class YPAssetZoomableView: UIScrollView {
             completion(isLowResIntermediaryImage)
         }
     }
+  
+    private func makePreviewUnavailableView() -> UIView {
+      
+      let view = UIView()
+      view.translatesAutoresizingMaskIntoConstraints = false
+      
+      let errorLabel = UILabel(frame: view.frame)
+      errorLabel.textAlignment = .center
+      errorLabel.text = "Preview is not available"
+      errorLabel.translatesAutoresizingMaskIntoConstraints = false
+      
+      errorLabel.frame = view.frame
+      view.addSubview(errorLabel)
+
+      errorLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+      errorLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+      
+      return view
+    }
+  
+    private func setPreviewUnavailable(for view: UIView) {
+      
+      previewFailedView.frame = view.frame
+      view.addSubview(previewFailedView)
+      
+      previewFailedView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+      previewFailedView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+    }
+  
+    private func removePreviewUnavailable() {
+      
+      previewFailedView.removeFromSuperview()
+    }
     
-    fileprivate func setAssetFrame(`for` view: UIView, with image: UIImage) {
+    fileprivate func setAssetFrame(`for` view: UIView, with image: UIImage?) {
         // Reseting the previous scale
         self.minimumZoomScale = 1
         self.zoomScale = 1
         
         // Calculating and setting the image view frame depending on screenWidth
         let screenWidth: CGFloat = UIScreen.main.bounds.width
-        let w = image.size.width
-        let h = image.size.height
+      
+        if let image = image {
+          let w = image.size.width
+          let h = image.size.height
 
-        var aspectRatio: CGFloat = 1
-        var zoomScale: CGFloat = 1
+          var aspectRatio: CGFloat = 1
+          var zoomScale: CGFloat = 1
 
-        if w > h { // Landscape
-            aspectRatio = h / w
-            view.frame.size.width = screenWidth
-            view.frame.size.height = screenWidth * aspectRatio
-        } else if h > w { // Portrait
-            aspectRatio = w / h
-            view.frame.size.width = screenWidth * aspectRatio
-            view.frame.size.height = screenWidth
-            
-            if let minWidth = minWidth {
-                let k = minWidth / screenWidth
-                zoomScale = (h / w) * k
-            }
-        } else { // Square
-            view.frame.size.width = screenWidth
-            view.frame.size.height = screenWidth
+          if w > h { // Landscape
+              aspectRatio = h / w
+              view.frame.size.width = screenWidth
+              view.frame.size.height = screenWidth * aspectRatio
+          } else if h > w { // Portrait
+              aspectRatio = w / h
+              view.frame.size.width = screenWidth * aspectRatio
+              view.frame.size.height = screenWidth
+              
+              if let minWidth = minWidth {
+                  let k = minWidth / screenWidth
+                  zoomScale = (h / w) * k
+              }
+          } else { // Square
+              view.frame.size.width = screenWidth
+              view.frame.size.height = screenWidth
+          }
+        } else {
+          view.frame.size.width = screenWidth
+          view.frame.size.height = screenWidth
         }
         
         // Centering image view

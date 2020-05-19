@@ -51,7 +51,6 @@ open class YPImagePicker: UINavigationController {
         picker = YPPickerVC()
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
-        picker.imagePickerDelegate = self
         navigationBar.tintColor = .ypLabel
     }
     
@@ -157,11 +156,5 @@ override open func viewDidLoad() {
         )
         loadingView.fillContainer()
         loadingView.alpha = 0
-    }
-}
-
-extension YPImagePicker: ImagePickerDelegate {
-    func noPhotos() {
-        self.imagePickerDelegate?.noPhotos()
     }
 }
