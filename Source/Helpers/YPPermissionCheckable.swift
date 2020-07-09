@@ -33,19 +33,16 @@ extension YPPermissionCheckable where Self: UIViewController {
         
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            defer {
-                block(true)
-            }
             
             switch AVCaptureDevice.authorizationStatus(for: .audio) {
             case .restricted, .denied:
                 let alert = YPPermissionDeniedPopup.popup(for: .microphone, cancelBlock: {
-                    return
+                    block(true)
                 })
                 present(alert, animated: true, completion: nil)
                 
             default:
-                return
+                block(true)
             }
             
         case .restricted, .denied:
