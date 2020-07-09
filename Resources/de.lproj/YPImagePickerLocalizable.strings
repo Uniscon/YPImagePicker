@@ -7,10 +7,20 @@
 "YPImagePickerLibrary" = "Bibliothek";
 "YPImagePickerNext" = "Weiter";
 "YPImagePickerOk" = "Fertig";
-"YPImagePickerPermissionDeniedPopupCancel" = "Abbrechen";
-"YPImagePickerPermissionDeniedPopupGrantPermission" = "Zugriff erlauben";
-"YPImagePickerPermissionDeniedPopupMessage" = "Bitte Zugriff erlauben";
-"YPImagePickerPermissionDeniedPopupTitle" = "Fehlende Berechtigung";
+
+// MARK: - Permission alert
+"YPImagePickerPermissionDeniedPopupTitle" = "Erlaubnis erforderlich";
+"YPImagePickerPermissionDeniedPopupSettings" = "Einstellungen";
+
+// Camera
+"YPImagePickerPermissionDeniedPopupCameraMessage" = "Bitte erlauben Sie der App die Nutzung der Kamera, um diese Funktion zu nutzen";
+
+// Library
+"YPImagePickerPermissionDeniedPopupLibraryMessage" = "Bitte erlauben Sie der App die Nutzung der Fotobibliothek, um diese Funktion zu nutzen";
+
+// Microphone
+"YPImagePickerPermissionDeniedPopupMicrophoneMessage" = "Bitte erlauben Sie der App die Nutzung der Mikrofon, um diese Funktion zu nutzen";
+
 "YPImagePickerPhoto" = "Foto";
 "YPImagePickerProcessing" = "Verarbeiten..";
 "YPImagePickerSave" = "Speichern";

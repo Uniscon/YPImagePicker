@@ -35,7 +35,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             block(true)
         case .restricted, .denied:
             let popup = YPPermissionDeniedPopup()
-            let alert = popup.popup(cancelBlock: {
+            let alert = popup.popup(for: .camera, cancelBlock: {
                 block(false)
             })
             present(alert, animated: true, completion: nil)

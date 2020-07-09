@@ -7,10 +7,20 @@
 "YPImagePickerLibrary" = "Library";
 "YPImagePickerNext" = "Next";
 "YPImagePickerOk" = "Ok";
-"YPImagePickerPermissionDeniedPopupCancel" = "Cancel";
-"YPImagePickerPermissionDeniedPopupGrantPermission" = "Grant Permission";
-"YPImagePickerPermissionDeniedPopupMessage" = "Please allow access";
-"YPImagePickerPermissionDeniedPopupTitle" = "Permission denied";
+
+// MARK: - Permission alert
+"YPImagePickerPermissionDeniedPopupTitle" = "Permission required";
+"YPImagePickerPermissionDeniedPopupSettings" = "Settings";
+
+// Camera
+"YPImagePickerPermissionDeniedPopupCameraMessage" = "To use this function, please grant the app permission to use the camera.";
+
+// Library
+"YPImagePickerPermissionDeniedPopupLibraryMessage" = "To use this function, please grant the app permission to use the library.";
+
+// Microphone
+"YPImagePickerPermissionDeniedPopupMicrophoneMessage" = "To use this function, please grant the app permission to use the microphone.";
+
 "YPImagePickerPhoto" = "Photo";
 "YPImagePickerProcessing" = "Processing..";
 "YPImagePickerSave" = "Save";
