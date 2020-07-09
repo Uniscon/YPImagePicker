@@ -27,7 +27,7 @@ enum PermissionType {
 
 class YPPermissionDeniedPopup {
     
-    func popup(for permissionType: PermissionType, cancelBlock: @escaping () -> Void) -> UIAlertController {
+    static func popup(for permissionType: PermissionType, cancelBlock: @escaping () -> Void) -> UIAlertController {
         
         let alert = UIAlertController(title: YPConfig.wordings.permissionPopup.title,
                                       message: permissionType.localizedMessage,

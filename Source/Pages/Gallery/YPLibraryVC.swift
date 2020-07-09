@@ -248,8 +248,7 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         case .authorized:
             block(true)
         case .restricted, .denied:
-            let popup = YPPermissionDeniedPopup()
-            let alert = popup.popup(for: .library, cancelBlock: {
+            let alert = YPPermissionDeniedPopup.popup(for: .library, cancelBlock: {
                 block(false)
             })
             present(alert, animated: true, completion: nil)

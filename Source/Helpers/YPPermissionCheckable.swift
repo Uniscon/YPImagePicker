@@ -30,21 +30,37 @@ extension YPPermissionCheckable where Self: UIViewController {
     // Async beacause will prompt permission if .notDetermined
     // and ask custom popup if denied.
     func checkPermissionToAccessVideo(block: @escaping (Bool) -> Void) {
-        switch AVCaptureDevice.authorizationStatus(for: AVMediaType.video) {
+        
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            block(true)
+            defer {
+                block(true)
+            }
+            
+            switch AVCaptureDevice.authorizationStatus(for: .audio) {
+            case .restricted, .denied:
+                let alert = YPPermissionDeniedPopup.popup(for: .microphone, cancelBlock: {
+                    return
+                })
+                present(alert, animated: true, completion: nil)
+                
+            default:
+                return
+            }
+            
         case .restricted, .denied:
-            let popup = YPPermissionDeniedPopup()
-            let alert = popup.popup(for: .camera, cancelBlock: {
+            let alert = YPPermissionDeniedPopup.popup(for: .camera, cancelBlock: {
                 block(false)
             })
             present(alert, animated: true, completion: nil)
+            
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
                 DispatchQueue.main.async {
                     block(granted)
                 }
             })
+            
         @unknown default:
             fatalError()
         }
