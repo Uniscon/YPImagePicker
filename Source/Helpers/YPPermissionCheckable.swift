@@ -34,15 +34,19 @@ extension YPPermissionCheckable where Self: UIViewController {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             
-            switch AVCaptureDevice.authorizationStatus(for: .audio) {
-            case .restricted, .denied:
+            switch AVAudioSession.sharedInstance().recordPermission {
+            case .denied, .undetermined:
                 let alert = YPPermissionDeniedPopup.popup(for: .microphone, cancelBlock: {
                     block(true)
                 })
                 present(alert, animated: true, completion: nil)
                 
-            default:
+            case .granted:
                 block(true)
+                
+            @unknown default:
+                NSLog("Microphone permission case not handled")
+                fatalError()
             }
             
         case .restricted, .denied:
