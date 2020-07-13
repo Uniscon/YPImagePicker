@@ -33,7 +33,9 @@ extension YPPermissionCheckable where Self: UIViewController {
         checkPermissionToAccessVideo { hasVideoPermission in
             if hasVideoPermission {
                 self.checkPermissionToAccessMicrophone { hasMicrophonePermission in
-                    block()
+                    if hasMicrophonePermission {
+                        block()
+                    }
                 }
             }
         }
