@@ -56,7 +56,7 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
 
     func start() {
         v.shotButton.isEnabled = false
-        doAfterPermissionCheck { [weak self] in
+        doAfterVideoPermissionCheck { [weak self] in
             guard let strongSelf = self else {
                 return
             }
@@ -97,7 +97,7 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func flipButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
+        doAfterVideoPermissionCheck { [weak self] in
             self?.flip()
         }
     }
@@ -124,7 +124,7 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func shotButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
+        doAfterVideoPermissionCheck { [weak self] in
             self?.toggleRecording()
         }
     }
@@ -155,7 +155,7 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func focusTapped(_ recognizer: UITapGestureRecognizer) {
-        doAfterPermissionCheck { [weak self] in
+        doAfterVideoPermissionCheck { [weak self] in
             self?.focus(recognizer: recognizer)
         }
     }
@@ -175,7 +175,7 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func pinch(_ recognizer: UIPinchGestureRecognizer) {
-        doAfterPermissionCheck { [weak self] in
+        doAfterVideoPermissionCheck { [weak self] in
             self?.zoom(recognizer: recognizer)
         }
     }

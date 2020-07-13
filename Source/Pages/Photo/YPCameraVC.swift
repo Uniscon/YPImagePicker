@@ -54,7 +54,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     }
     
     func start() {
-        doAfterPermissionCheck { [weak self] in
+        doAfterCameraPermissionCheck { [weak self] in
             guard let strongSelf = self else {
                 return
             }
@@ -73,7 +73,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
             return
         }
         
-        doAfterPermissionCheck { [weak self] in
+        doAfterCameraPermissionCheck { [weak self] in
             self?.focus(recognizer: recognizer)
         }
     }
@@ -100,7 +100,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
             return
         }
         
-        doAfterPermissionCheck { [weak self] in
+        doAfterCameraPermissionCheck { [weak self] in
             self?.zoom(recognizer: recognizer)
         }
     }
@@ -115,7 +115,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     
     @objc
     func flipButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
+        doAfterCameraPermissionCheck { [weak self] in
             self?.photoCapture.flipCamera {
                 self?.refreshFlashButton()
             }
@@ -124,7 +124,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     
     @objc
     func shotButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
+        doAfterCameraPermissionCheck { [weak self] in
             self?.shoot()
         }
     }

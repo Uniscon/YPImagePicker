@@ -19,10 +19,22 @@ extension YPPermissionCheckable where Self: UIViewController {
         checkPermissionToAccessVideo { _ in }
     }
     
-    func doAfterPermissionCheck(block:@escaping () -> Void) {
+    func doAfterCameraPermissionCheck(block:@escaping () -> Void) {
+        
         checkPermissionToAccessVideo { hasPermission in
             if hasPermission {
                 block()
+            }
+        }
+    }
+    
+    func doAfterVideoPermissionCheck(block: @escaping () -> Void) {
+        
+        checkPermissionToAccessVideo { hasVideoPermission in
+            if hasVideoPermission {
+                self.checkPermissionToAccessMicrophone { hasMicrophonePermission in
+                    block()
+                }
             }
         }
     }
@@ -33,21 +45,7 @@ extension YPPermissionCheckable where Self: UIViewController {
         
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            
-            switch AVAudioSession.sharedInstance().recordPermission {
-            case .denied, .undetermined:
-                let alert = YPPermissionDeniedPopup.popup(for: .microphone, cancelBlock: {
-                    block(true)
-                })
-                present(alert, animated: true, completion: nil)
-                
-            case .granted:
-                block(true)
-                
-            @unknown default:
-                NSLog("Microphone permission case not handled")
-                fatalError()
-            }
+            block(true)
             
         case .restricted, .denied:
             let alert = YPPermissionDeniedPopup.popup(for: .camera, cancelBlock: {
@@ -63,6 +61,31 @@ extension YPPermissionCheckable where Self: UIViewController {
             })
             
         @unknown default:
+            fatalError()
+        }
+    }
+    
+    func checkPermissionToAccessMicrophone(block: @escaping (Bool) -> Void) {
+        
+        switch AVAudioSession.sharedInstance().recordPermission {
+        case .granted:
+            block(true)
+            
+        case .denied:
+            let alert = YPPermissionDeniedPopup.popup(for: .microphone, cancelBlock: {
+                block(false)
+            })
+            present(alert, animated: true, completion: nil)
+            
+        case .undetermined:
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    block(granted)
+                }
+            }
+            
+        @unknown default:
+            NSLog("Microphone permission case not handled")
             fatalError()
         }
     }
