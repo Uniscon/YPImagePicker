@@ -248,9 +248,12 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         case .authorized:
             block(true)
         case .restricted, .denied:
-            let alert = YPPermissionDeniedPopup.popup(for: .library, cancelBlock: {
+            let alert = YPPermissionDeniedPopup()
+            alert.setup(for: .library)
+            alert.onCancelTapped = {
                 block(false)
-            })
+            }
+            
             present(alert, animated: true, completion: nil)
         case .notDetermined:
             // Show permission popup and get new status
@@ -260,6 +263,7 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                 }
             }
         @unknown default:
+            NSLog("Library permission case not handled")
             fatalError()
         }
     }

@@ -25,16 +25,30 @@ enum PermissionType {
     }
 }
 
-class YPPermissionDeniedPopup {
+class YPPermissionDeniedPopup: UIAlertController {
     
-    static func popup(for permissionType: PermissionType, cancelBlock: @escaping () -> Void) -> UIAlertController {
+    var onCancelTapped: (() -> Void)?
+    
+    private var permissionType: PermissionType?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
         
-        let alert = UIAlertController(title: YPConfig.wordings.permissionPopup.title,
-                                      message: permissionType.localizedMessage,
-                                      preferredStyle: .alert)
+        setupUI()
+    }
+    
+    func setup(for permissionType: PermissionType) {
         
+        self.permissionType = permissionType
+    }
+    
+    private func setupUI() {
+        
+        title = YPConfig.wordings.permissionPopup.title
+        message = permissionType?.localizedMessage
+
         let cancelAction = UIAlertAction(title: YPConfig.wordings.cancel, style: .cancel) { _ in
-            cancelBlock()
+            self.onCancelTapped?()
         }
         
         let settingsAction = UIAlertAction(title: YPConfig.wordings.permissionPopup.settings, style: .default) { _ in
@@ -46,9 +60,7 @@ class YPPermissionDeniedPopup {
             }
         }
         
-        alert.addAction(cancelAction)
-        alert.addAction(settingsAction)
-
-        return alert
+        addAction(cancelAction)
+        addAction(settingsAction)
     }
 }

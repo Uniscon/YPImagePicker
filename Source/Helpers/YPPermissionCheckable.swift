@@ -50,9 +50,12 @@ extension YPPermissionCheckable where Self: UIViewController {
             block(true)
             
         case .restricted, .denied:
-            let alert = YPPermissionDeniedPopup.popup(for: .camera, cancelBlock: {
+            let alert = YPPermissionDeniedPopup()
+            alert.setup(for: .camera)
+            alert.onCancelTapped = {
                 block(false)
-            })
+            }
+            
             present(alert, animated: true, completion: nil)
             
         case .notDetermined:
@@ -63,6 +66,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             })
             
         @unknown default:
+            NSLog("Video permission case not handled")
             fatalError()
         }
     }
@@ -74,9 +78,12 @@ extension YPPermissionCheckable where Self: UIViewController {
             block(true)
             
         case .denied:
-            let alert = YPPermissionDeniedPopup.popup(for: .microphone, cancelBlock: {
+            let alert = YPPermissionDeniedPopup()
+            alert.setup(for: .microphone)
+            alert.onCancelTapped = {
                 block(false)
-            })
+            }
+
             present(alert, animated: true, completion: nil)
             
         case .undetermined:
