@@ -50,9 +50,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             block(true)
             
         case .restricted, .denied:
-            let alert = YPPermissionDeniedPopup(title: nil, message: nil, preferredStyle: .alert)
-            alert.setup(for: .camera)
-            alert.onCancelTapped = {
+            let alert = UIAlertController.permissionDeniedAlert(forType: .camera) {
                 block(false)
             }
             
@@ -78,9 +76,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             block(true)
             
         case .denied:
-            let alert = YPPermissionDeniedPopup(title: nil, message: nil, preferredStyle: .alert)
-            alert.setup(for: .microphone)
-            alert.onCancelTapped = {
+            let alert = UIAlertController.permissionDeniedAlert(forType: .microphone) {
                 block(false)
             }
 

@@ -248,12 +248,10 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         case .authorized:
             block(true)
         case .restricted, .denied:
-            let alert = YPPermissionDeniedPopup(title: nil, message: nil, preferredStyle: .alert)
-            alert.setup(for: .library)
-            alert.onCancelTapped = {
+            let alert = UIAlertController.permissionDeniedAlert(forType: .library) {
                 block(false)
             }
-            
+
             present(alert, animated: true, completion: nil)
         case .notDetermined:
             // Show permission popup and get new status

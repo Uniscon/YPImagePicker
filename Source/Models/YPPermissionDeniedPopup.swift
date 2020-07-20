@@ -25,42 +25,31 @@ enum PermissionType {
     }
 }
 
-class YPPermissionDeniedPopup: UIAlertController {
+extension UIAlertController {
     
-    var onCancelTapped: (() -> Void)?
-    
-    private var permissionType: PermissionType?
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    class func permissionDeniedAlert(forType permissionType: PermissionType,
+                                     onCancel: (() -> Void)? = nil) -> UIAlertController {
         
-        setupUI()
-    }
-    
-    func setup(for permissionType: PermissionType) {
+        let alert = UIAlertController(title: YPConfig.wordings.permissionPopup.title,
+                                      message: permissionType.localizedMessage,
+                                      preferredStyle: .alert)
         
-        self.permissionType = permissionType
-    }
-    
-    private func setupUI() {
-        
-        title = YPConfig.wordings.permissionPopup.title
-        message = permissionType?.localizedMessage
-
         let cancelAction = UIAlertAction(title: YPConfig.wordings.cancel, style: .cancel) { _ in
-            self.onCancelTapped?()
+            onCancel?()
         }
-        
+
         let settingsAction = UIAlertAction(title: YPConfig.wordings.permissionPopup.settings, style: .default) { _ in
-            
+
             if #available(iOS 10.0, *) {
                 UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
             } else {
                 UIApplication.shared.openURL(URL(string: UIApplication.openSettingsURLString)!)
             }
         }
-        
-        addAction(cancelAction)
-        addAction(settingsAction)
+
+        alert.addAction(cancelAction)
+        alert.addAction(settingsAction)
+
+        return alert
     }
 }
