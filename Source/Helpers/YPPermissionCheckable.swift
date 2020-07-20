@@ -19,39 +19,33 @@ extension YPPermissionCheckable where Self: UIViewController {
         checkPermissionToAccessVideo { _ in }
     }
     
-    func doAfterCameraPermissionCheck(block:@escaping () -> Void) {
+    func doAfterCameraPermissionCheck(completion: @escaping (Bool) -> Void) {
         
-        checkPermissionToAccessVideo { hasPermission in
-            if hasPermission {
-                block()
-            }
-        }
+        checkPermissionToAccessVideo(completion: completion)
     }
     
-    func doAfterVideoPermissionCheck(block: @escaping () -> Void) {
+    func doAfterVideoPermissionCheck(completion: @escaping (Bool) -> Void) {
         
         checkPermissionToAccessVideo { hasVideoPermission in
             if hasVideoPermission {
-                self.checkPermissionToAccessMicrophone { hasMicrophonePermission in
-                    if hasMicrophonePermission {
-                        block()
-                    }
-                }
+                self.checkPermissionToAccessMicrophone(completion: completion)
+            } else {
+                completion(false)
             }
         }
     }
     
     // Async beacause will prompt permission if .notDetermined
     // and ask custom popup if denied.
-    func checkPermissionToAccessVideo(block: @escaping (Bool) -> Void) {
+    func checkPermissionToAccessVideo(completion: @escaping (Bool) -> Void) {
         
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            block(true)
+            completion(true)
             
         case .restricted, .denied:
             let alert = UIAlertController.permissionDeniedAlert(forType: .camera) {
-                block(false)
+                completion(false)
             }
             
             present(alert, animated: true, completion: nil)
@@ -59,7 +53,7 @@ extension YPPermissionCheckable where Self: UIViewController {
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
                 DispatchQueue.main.async {
-                    block(granted)
+                    completion(granted)
                 }
             })
             
@@ -69,15 +63,15 @@ extension YPPermissionCheckable where Self: UIViewController {
         }
     }
     
-    func checkPermissionToAccessMicrophone(block: @escaping (Bool) -> Void) {
+    func checkPermissionToAccessMicrophone(completion: @escaping (Bool) -> Void) {
         
         switch AVAudioSession.sharedInstance().recordPermission {
         case .granted:
-            block(true)
+            completion(true)
             
         case .denied:
             let alert = UIAlertController.permissionDeniedAlert(forType: .microphone) {
-                block(false)
+                completion(false)
             }
 
             present(alert, animated: true, completion: nil)
@@ -85,7 +79,7 @@ extension YPPermissionCheckable where Self: UIViewController {
         case .undetermined:
             AVAudioSession.sharedInstance().requestRecordPermission { granted in
                 DispatchQueue.main.async {
-                    block(granted)
+                    completion(granted)
                 }
             }
             

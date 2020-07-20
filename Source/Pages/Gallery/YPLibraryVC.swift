@@ -228,13 +228,19 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     }
     
     func checkPermission() {
+        
         checkPermissionToAccessPhotoLibrary { [weak self] hasPermission in
-            guard let strongSelf = self else {
-                return
-            }
-            if hasPermission && !strongSelf.initialized {
-                strongSelf.initialize()
-                strongSelf.initialized = true
+            
+            if hasPermission {
+                guard let strongSelf = self else {
+                    return
+                }
+                if !strongSelf.initialized {
+                    strongSelf.initialize()
+                    strongSelf.initialized = true
+                }
+            } else {
+                self?.dismiss(animated: true)
             }
         }
     }
