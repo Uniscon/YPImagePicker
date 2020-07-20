@@ -50,7 +50,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             block(true)
             
         case .restricted, .denied:
-            let alert = YPPermissionDeniedPopup()
+            let alert = YPPermissionDeniedPopup(title: nil, message: nil, preferredStyle: .alert)
             alert.setup(for: .camera)
             alert.onCancelTapped = {
                 block(false)
@@ -59,7 +59,11 @@ extension YPPermissionCheckable where Self: UIViewController {
             present(alert, animated: true, completion: nil)
             
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video, completionHandler: block)
+            AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
+                DispatchQueue.main.async {
+                    block(granted)
+                }
+            })
             
         @unknown default:
             NSLog("Video permission case not handled")
@@ -74,7 +78,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             block(true)
             
         case .denied:
-            let alert = YPPermissionDeniedPopup()
+            let alert = YPPermissionDeniedPopup(title: nil, message: nil, preferredStyle: .alert)
             alert.setup(for: .microphone)
             alert.onCancelTapped = {
                 block(false)
@@ -83,7 +87,11 @@ extension YPPermissionCheckable where Self: UIViewController {
             present(alert, animated: true, completion: nil)
             
         case .undetermined:
-            AVAudioSession.sharedInstance().requestRecordPermission(block)
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    block(granted)
+                }
+            }
             
         @unknown default:
             NSLog("Microphone permission case not handled")
