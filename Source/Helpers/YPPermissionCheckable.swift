@@ -59,11 +59,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             present(alert, animated: true, completion: nil)
             
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
-                DispatchQueue.main.async {
-                    block(granted)
-                }
-            })
+            AVCaptureDevice.requestAccess(for: .video, completionHandler: block)
             
         @unknown default:
             NSLog("Video permission case not handled")
@@ -87,11 +83,7 @@ extension YPPermissionCheckable where Self: UIViewController {
             present(alert, animated: true, completion: nil)
             
         case .undetermined:
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                DispatchQueue.main.async {
-                    block(granted)
-                }
-            }
+            AVAudioSession.sharedInstance().requestRecordPermission(block)
             
         @unknown default:
             NSLog("Microphone permission case not handled")
