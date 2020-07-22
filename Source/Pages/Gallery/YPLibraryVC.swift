@@ -88,6 +88,8 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
             v.assetViewContainer.setMultipleSelectionMode(on: multipleSelectionEnabled)
             v.collectionView.reloadData()
         }
+      
+        initialized = true
     }
     
     // MARK: - View Lifecycle
@@ -231,16 +233,14 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         
         checkPermissionToAccessPhotoLibrary { [weak self] hasPermission in
             
-            if hasPermission {
-                guard let strongSelf = self else {
-                    return
-                }
-                if !strongSelf.initialized {
-                    strongSelf.initialize()
-                    strongSelf.initialized = true
-                }
-            } else {
-                self?.dismiss(animated: true)
+            guard let strongSelf = self else {
+                return
+            }
+            
+            if !hasPermission {
+                strongSelf.dismiss(animated: true)
+            } else if !strongSelf.initialized {
+                strongSelf.initialize()
             }
         }
     }
@@ -254,9 +254,9 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         case .authorized:
             block(true)
         case .restricted, .denied:
-            let alert = UIAlertController.permissionDeniedAlert(forType: .library) {
+            let alert = UIAlertController.permissionDeniedAlert(forType: .library, onCancel: {
                 block(false)
-            }
+            })
 
             present(alert, animated: true, completion: nil)
         case .notDetermined:

@@ -59,21 +59,22 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
         v.shotButton.isEnabled = false
         doAfterVideoPermissionCheck { [weak self] granted in
             
+            guard let strongSelf = self else {
+                return
+            }
+            
             if granted {
-                guard let strongSelf = self else {
-                    return
-                }
-                self?.videoHelper.start(previewView: strongSelf.v.previewViewContainer,
-                                        withVideoRecordingLimit: YPConfig.video.recordingTimeLimit,
-                                        completion: {
+                strongSelf.videoHelper.start(previewView: strongSelf.v.previewViewContainer,
+                                             withVideoRecordingLimit: YPConfig.video.recordingTimeLimit,
+                                             completion: {
                                             
                     DispatchQueue.main.async {
-                        self?.v.shotButton.isEnabled = true
-                        self?.refreshState()
+                        strongSelf.v.shotButton.isEnabled = true
+                        strongSelf.refreshState()
                     }
                 })
             } else {
-                self?.dismiss(animated: true)
+                strongSelf.dismiss(animated: true)
             }
         }
     }

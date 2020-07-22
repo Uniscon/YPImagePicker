@@ -57,18 +57,19 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
         
         doAfterCameraPermissionCheck { [weak self] granted in
             
+            guard let strongSelf = self else {
+                return
+            }
+            
             if granted {
-                guard let strongSelf = self else {
-                    return
-                }
-                self?.photoCapture.start(with: strongSelf.v.previewViewContainer, completion: {
+                strongSelf.photoCapture.start(with: strongSelf.v.previewViewContainer, completion: {
                     DispatchQueue.main.async {
-                        self?.isInited = true
-                        self?.refreshFlashButton()
+                        strongSelf.isInited = true
+                        strongSelf.refreshFlashButton()
                     }
                 })
             } else {
-                self?.dismiss(animated: true)
+                strongSelf.dismiss(animated: true)
             }
         }
     }
