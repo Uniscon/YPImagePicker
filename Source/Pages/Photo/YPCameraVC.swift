@@ -81,9 +81,9 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
             return
         }
         
-        doAfterCameraPermissionCheck { [weak self] _ in
+        doAfterCameraPermissionCheck { [weak self] granted in
             
-            self?.focus(recognizer: recognizer)
+            granted ? self?.focus(recognizer: recognizer) : self?.dismiss(animated: true)
         }
     }
     
@@ -110,9 +110,9 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
             return
         }
         
-        doAfterCameraPermissionCheck { [weak self] _ in
+        doAfterCameraPermissionCheck { [weak self] granted in
             
-            self?.zoom(recognizer: recognizer)
+            granted ? self?.zoom(recognizer: recognizer) : self?.dismiss(animated: true)
         }
     }
     
@@ -127,10 +127,14 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     @objc
     func flipButtonTapped() {
         
-        doAfterCameraPermissionCheck { [weak self] _ in
+        doAfterCameraPermissionCheck { [weak self] granted in
             
-            self?.photoCapture.flipCamera {
-                self?.refreshFlashButton()
+            if granted {
+                self?.photoCapture.flipCamera {
+                    self?.refreshFlashButton()
+                }
+            } else {
+                self?.dismiss(animated: true)
             }
         }
     }
@@ -138,8 +142,9 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     @objc
     func shotButtonTapped() {
         
-        doAfterCameraPermissionCheck { [weak self] _ in
-            self?.shoot()
+        doAfterCameraPermissionCheck { [weak self] granted in
+            
+            granted ? self?.shoot() : self?.dismiss(animated: true)
         }
     }
     

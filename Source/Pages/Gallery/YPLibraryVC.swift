@@ -221,11 +221,11 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
     // MARK: - Permissions
     
-    func doAfterPermissionCheck(block:@escaping () -> Void) {
+    func doAfterPermissionCheck(block: @escaping () -> Void) {
+        
         checkPermissionToAccessPhotoLibrary { hasPermission in
-            if hasPermission {
-                block()
-            }
+            
+            hasPermission ? block() : self.dismiss(animated: true)
         }
     }
     
