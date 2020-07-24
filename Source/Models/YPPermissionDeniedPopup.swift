@@ -8,28 +8,48 @@
 
 import UIKit
 
-class YPPermissionDeniedPopup {
-    func popup(cancelBlock: @escaping () -> Void) -> UIAlertController {
-        let alert = UIAlertController(title:
-            YPConfig.wordings.permissionPopup.title,
-                                      message: YPConfig.wordings.permissionPopup.message,
+enum PermissionType {
+    case library
+    case camera
+    case microphone
+    
+    var localizedMessage: String {
+        switch self {
+        case .camera:
+            return YPConfig.wordings.permissionPopup.cameraMessage
+        case .library:
+            return YPConfig.wordings.permissionPopup.libraryMessage
+        case .microphone:
+            return YPConfig.wordings.permissionPopup.microphoneMessage
+        }
+    }
+}
+
+extension UIAlertController {
+    
+    class func permissionDeniedAlert(forType permissionType: PermissionType,
+                                     onCancel: (() -> Void)? = nil) -> UIAlertController {
+        
+        let alert = UIAlertController(title: YPConfig.wordings.permissionPopup.title,
+                                      message: permissionType.localizedMessage,
                                       preferredStyle: .alert)
-        alert.addAction(
-            UIAlertAction(title: YPConfig.wordings.permissionPopup.cancel,
-                          style: UIAlertAction.Style.cancel,
-                          handler: { _ in
-                            cancelBlock()
-            }))
-        alert.addAction(
-            UIAlertAction(title: YPConfig.wordings.permissionPopup.grantPermission,
-                          style: .default,
-                          handler: { _ in
-                            if #available(iOS 10.0, *) {
-                                UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-                            } else {
-                                UIApplication.shared.openURL(URL(string: UIApplication.openSettingsURLString)!)
-                            }
-            }))
+        
+        let cancelAction = UIAlertAction(title: YPConfig.wordings.cancel, style: .cancel) { _ in
+            onCancel?()
+        }
+
+        let settingsAction = UIAlertAction(title: YPConfig.wordings.permissionPopup.settings, style: .default) { _ in
+
+            if #available(iOS 10.0, *) {
+                UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+            } else {
+                UIApplication.shared.openURL(URL(string: UIApplication.openSettingsURLString)!)
+            }
+        }
+
+        alert.addAction(cancelAction)
+        alert.addAction(settingsAction)
+
         return alert
     }
 }

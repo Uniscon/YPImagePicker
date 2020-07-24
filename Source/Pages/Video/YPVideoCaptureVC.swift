@@ -55,19 +55,27 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     }
 
     func start() {
+        
         v.shotButton.isEnabled = false
-        doAfterPermissionCheck { [weak self] in
+        doAfterVideoPermissionCheck { [weak self] granted in
+            
             guard let strongSelf = self else {
                 return
             }
-            self?.videoHelper.start(previewView: strongSelf.v.previewViewContainer,
-                                    withVideoRecordingLimit: YPConfig.video.recordingTimeLimit,
-                                    completion: {
-                                        DispatchQueue.main.async {
-                                            self?.v.shotButton.isEnabled = true
-                                            self?.refreshState()
-                                        }
-            })
+            
+            if granted {
+                strongSelf.videoHelper.start(previewView: strongSelf.v.previewViewContainer,
+                                             withVideoRecordingLimit: YPConfig.video.recordingTimeLimit,
+                                             completion: {
+                                            
+                    DispatchQueue.main.async {
+                        strongSelf.v.shotButton.isEnabled = true
+                        strongSelf.refreshState()
+                    }
+                })
+            } else {
+                strongSelf.dismiss(animated: true)
+            }
         }
     }
     
@@ -97,8 +105,10 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func flipButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
-            self?.flip()
+        
+        doAfterVideoPermissionCheck { [weak self] granted in
+          
+            granted ? self?.flip() : self?.dismiss(animated: true)
         }
     }
     
@@ -124,8 +134,10 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func shotButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
-            self?.toggleRecording()
+        
+        doAfterVideoPermissionCheck { [weak self] granted in
+          
+            granted ? self?.toggleRecording() : self?.dismiss(animated: true)
         }
     }
     
@@ -155,8 +167,10 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func focusTapped(_ recognizer: UITapGestureRecognizer) {
-        doAfterPermissionCheck { [weak self] in
-            self?.focus(recognizer: recognizer)
+        
+        doAfterVideoPermissionCheck { [weak self] granted in
+          
+            granted ? self?.focus(recognizer: recognizer) : self?.dismiss(animated: true)
         }
     }
     
@@ -175,8 +189,10 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func pinch(_ recognizer: UIPinchGestureRecognizer) {
-        doAfterPermissionCheck { [weak self] in
-            self?.zoom(recognizer: recognizer)
+        
+        doAfterVideoPermissionCheck { [weak self] granted in
+          
+            granted ? self?.zoom(recognizer: recognizer) : self?.dismiss(animated: true)
         }
     }
     

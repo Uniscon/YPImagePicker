@@ -54,27 +54,36 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     }
     
     func start() {
-        doAfterPermissionCheck { [weak self] in
+        
+        doAfterCameraPermissionCheck { [weak self] granted in
+            
             guard let strongSelf = self else {
                 return
             }
-            self?.photoCapture.start(with: strongSelf.v.previewViewContainer, completion: {
-                DispatchQueue.main.async {
-                    self?.isInited = true
-                    self?.refreshFlashButton()
-                }
-            })
+            
+            if granted {
+                strongSelf.photoCapture.start(with: strongSelf.v.previewViewContainer, completion: {
+                    DispatchQueue.main.async {
+                        strongSelf.isInited = true
+                        strongSelf.refreshFlashButton()
+                    }
+                })
+            } else {
+                strongSelf.dismiss(animated: true)
+            }
         }
     }
 
     @objc
     func focusTapped(_ recognizer: UITapGestureRecognizer) {
+        
         guard isInited else {
             return
         }
         
-        doAfterPermissionCheck { [weak self] in
-            self?.focus(recognizer: recognizer)
+        doAfterCameraPermissionCheck { [weak self] granted in
+            
+            granted ? self?.focus(recognizer: recognizer) : self?.dismiss(animated: true)
         }
     }
     
@@ -96,12 +105,14 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     
     @objc
     func pinch(_ recognizer: UIPinchGestureRecognizer) {
+        
         guard isInited else {
             return
         }
         
-        doAfterPermissionCheck { [weak self] in
-            self?.zoom(recognizer: recognizer)
+        doAfterCameraPermissionCheck { [weak self] granted in
+            
+            granted ? self?.zoom(recognizer: recognizer) : self?.dismiss(animated: true)
         }
     }
     
@@ -115,17 +126,25 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     
     @objc
     func flipButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
-            self?.photoCapture.flipCamera {
-                self?.refreshFlashButton()
+        
+        doAfterCameraPermissionCheck { [weak self] granted in
+            
+            if granted {
+                self?.photoCapture.flipCamera {
+                    self?.refreshFlashButton()
+                }
+            } else {
+                self?.dismiss(animated: true)
             }
         }
     }
     
     @objc
     func shotButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
-            self?.shoot()
+        
+        doAfterCameraPermissionCheck { [weak self] granted in
+            
+            granted ? self?.shoot() : self?.dismiss(animated: true)
         }
     }
     

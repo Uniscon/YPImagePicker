@@ -88,6 +88,8 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
             v.assetViewContainer.setMultipleSelectionMode(on: multipleSelectionEnabled)
             v.collectionView.reloadData()
         }
+      
+        initialized = true
     }
     
     // MARK: - View Lifecycle
@@ -219,22 +221,26 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
     // MARK: - Permissions
     
-    func doAfterPermissionCheck(block:@escaping () -> Void) {
+    func doAfterPermissionCheck(block: @escaping () -> Void) {
+        
         checkPermissionToAccessPhotoLibrary { hasPermission in
-            if hasPermission {
-                block()
-            }
+            
+            hasPermission ? block() : self.dismiss(animated: true)
         }
     }
     
     func checkPermission() {
+        
         checkPermissionToAccessPhotoLibrary { [weak self] hasPermission in
+            
             guard let strongSelf = self else {
                 return
             }
-            if hasPermission && !strongSelf.initialized {
+            
+            if !hasPermission {
+                strongSelf.dismiss(animated: true)
+            } else if !strongSelf.initialized {
                 strongSelf.initialize()
-                strongSelf.initialized = true
             }
         }
     }
@@ -248,10 +254,10 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         case .authorized:
             block(true)
         case .restricted, .denied:
-            let popup = YPPermissionDeniedPopup()
-            let alert = popup.popup(cancelBlock: {
+            let alert = UIAlertController.permissionDeniedAlert(forType: .library, onCancel: {
                 block(false)
             })
+
             present(alert, animated: true, completion: nil)
         case .notDetermined:
             // Show permission popup and get new status
@@ -261,6 +267,7 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                 }
             }
         @unknown default:
+            NSLog("Library permission case not handled")
             fatalError()
         }
     }
