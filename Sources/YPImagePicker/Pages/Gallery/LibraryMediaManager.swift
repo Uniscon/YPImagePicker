@@ -115,14 +115,30 @@ class LibraryMediaManager {
                 videoComposition.renderSize = cropRect.size // needed? 
                 
                 // 5. Configuring export session
+              
+                let videoAssetResource = PHAssetResource.assetResources(for: videoAsset).first
+              
+                let fileType: AVFileType?
+                if let uti = videoAssetResource?.uniformTypeIdentifier {
+                  fileType = AVFileType(uti)
+                } else {
+                  fileType = YPConfig.video.fileType
+                }
+              
+                let temporaryURL: URL
+                if let fileName = videoAssetResource?.originalFilename {
+                  temporaryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+                } else {
+                  temporaryURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                    .appendingUniquePathComponent(pathExtension: YPConfig.video.fileType.fileExtension)
+                }
                 
                 let exportSession = AVAssetExportSession(asset: assetComposition,
                                                          presetName: YPConfig.video.compression)
-                exportSession?.outputFileType = YPConfig.video.fileType
+                exportSession?.outputFileType = fileType
                 exportSession?.shouldOptimizeForNetworkUse = true
                 exportSession?.videoComposition = videoComposition
-                exportSession?.outputURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                    .appendingUniquePathComponent(pathExtension: YPConfig.video.fileType.fileExtension)
+                exportSession?.outputURL = temporaryURL
                 
                 // 6. Exporting
                 DispatchQueue.main.async {
